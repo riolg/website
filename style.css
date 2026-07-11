@@ -14,16 +14,6 @@ body {
     text-align: center;
 }
 
-canvas {
-    width: 250px;
-    height: 250px;
-    background-color: #1e1e1e;
-    border: 2px solid #333;
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-}
-
-
 h1 {
     font-size: 3rem;       
     margin-top: -40px;     
@@ -34,4 +24,10 @@ p {
     font-size: 1.25rem;  
     color: #aaaaaa;      
     margin-bottom: 30px;  
+}
+
+canvas {
+    background-color: #1e1e1e;
+    border: 2px solid #333333;
+    border-radius: 8px;
 }
