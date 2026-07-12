@@ -10,6 +10,7 @@ let isDragging = false;
 let startPoint = { x: 0, y: 0 };
 let endPoint = { x: 0, y: 0 };
 let hasCut = false;
+let hasDied = false;
 let currentBlobPoints = [];
 let score = 0;
 let round = 0;
@@ -28,6 +29,12 @@ function generateBlobShape() {
     document.getElementById('pctA-text').innerText = '- ';
     document.getElementById('ratio-colon').innerText = ':';
     document.getElementById('pctB-text').innerText = ' -';
+
+    if (hasDied) {
+        document.getElementById('score-text').innerText = `Score: 0`;
+        document.getElementById('score-text').style.color = '#ffffff';
+        hasDied = false;
+    }
 
     document.querySelector('.ratio-text').style.color = '#8a8a8a';
 
@@ -184,27 +191,32 @@ function calculateSplit() {
     
     const ratioText = document.querySelector('.ratio-text');
 
-    lowerPercentage = Math.min(Math.round(pctA), Math.round(pctB));
+    lowerPercentage = min(Math.round(pctA), Math.round(pctB));
 
     if (lowerPercentage < 42) {
-        ctx.strokeStyle = '#ff4757'; 
-        ratioText.style.color = '#ff4757';
+        scoreColor = '#ff4757';
+        document.getElementById('score-text').innerText = `Score: ${score}`;
+        document.getElementById('score-text').style.color = '#ff4757';
+        hasDied = true;
         score = 0;
         round = 0;
     }
     else if (lowerPercentage === 50) {
-        ctx.strokeStyle = '#409f44';
-        ratioText.style.color = '#409f44';
+        scoreColor = '#00ff51';
         score += 10;
         round++;
+
+        document.getElementById('score-text').innerText = `Score: ${score}`;
     }
     else {
-        ctx.strokeStyle = '#ffffff';
-        ratioText.style.color = '#ffffff';
-        if (42 < lowerPercentage <= 44) {score ++;} else if (44 < lowerPercentage <= 46) {score += 2;} else if (46 < lowerPercentage <= 48) {score += 3;} else if (48 < lowerPercentage <= 49) {score += 5;}
+        if (lowerPercentage <= 44) {score ++; scoreColor = '#ffffff';} else if (lowerPercentage === 45 || lowerPercentage === 46) {score += 2; scoreColor = '#fee8d1';} else if (lowerPercentage === 47 || lowerPercentage === 48) {score += 3; scoreColor = '#f3ffc6';} else if (lowerPercentage === 49) {score += 5; scoreColor = '#cfd589';}
         round++;
+
+        document.getElementById('score-text').innerText = `Score: ${score}`;
     }
-    document.getElementById('score-text').innerText = `Score: ${score}`;
+    ctx.strokeStyle = scoreColor; 
+    ratioText.style.color = scoreColor;
+    
     ctx.lineWidth = 4;
     ctx.stroke();
 }
