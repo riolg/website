@@ -1,10 +1,8 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-canvasSize = 450;
-
-canvas.width = canvasSize;
-canvas.height = canvasSize;
+canvas.width = 850;
+canvas.height = 450;
 
 let isDragging = false;
 let startPoint = { x: 0, y: 0 };
@@ -26,6 +24,12 @@ function min(a, b) {
 function generateBlobShape() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     hasCut = false;
+
+    continueMessage.classList.add('hidden');
+    document.getElementById('stats-container').style.margin = '51px auto 0 auto';
+    document.querySelector('canvas').style.marginBottom = '8px';
+    document.querySelector('p').style.marginBottom = '17.5px';
+
     document.getElementById('pctA-text').innerText = '- ';
     document.getElementById('ratio-colon').innerText = ':';
     document.getElementById('pctB-text').innerText = ' -';
@@ -41,10 +45,12 @@ function generateBlobShape() {
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
     
-    const baseRadius = randomInt(min(70+round*2, 110), min(70+round*4, 130));
-    const spikeIntensity = randomInt(min(65+round*2, 125), min(65+round*5, 150));
-    const numPoints = randomInt(min(5+Math.floor(round/3), 10), min(5+Math.floor(round/2), 15));
+    const baseRadius = randomInt(min(78 + round * 2, 140), min(90 + round * 3, 165));
+    const spikeIntensity = randomInt(min(65 + round * 1, 100), min(76 + Math.floor(round * 2.5), 150));
+    const numPoints = randomInt(min(5+Math.floor(round/3), 15), min(7+Math.floor(round/2), 20));
     currentBlobPoints = [];
+
+    const horizontalFactor = min(1.3 + round * 0.03, 2.1);
 
     for (let i = 0; i < numPoints; i++) {
         const baseAngle = (i / numPoints) * Math.PI * 2;
@@ -52,11 +58,39 @@ function generateBlobShape() {
         const angle = baseAngle + angleVariance;
         const randomRadius = baseRadius + (Math.random() * 2 - 1) * spikeIntensity;
         
-        currentBlobPoints.push({
-            x: centerX + Math.cos(angle) * randomRadius,
-            y: centerY + Math.sin(angle) * randomRadius
-        });
+        let x = centerX + Math.cos(angle) * randomRadius * horizontalFactor;
+        let y = centerY + Math.sin(angle) * randomRadius;
+        
+        currentBlobPoints.push({ x, y });
     }
+
+    const margin = 20;
+    let maxScaleDown = 1.0;
+
+    for (let i = 0; i < currentBlobPoints.length; i++) {
+        let p = currentBlobPoints[i];
+        let dx = p.x - centerX;
+        let dy = p.y - centerY;
+        let maxAllowedX = canvas.width / 2 - margin;
+        let maxAllowedY = canvas.height / 2 - margin;
+        
+        if (Math.abs(dx) > maxAllowedX) {
+            let s = maxAllowedX / Math.abs(dx);
+            if (s < maxScaleDown) maxScaleDown = s;
+        }
+        if (Math.abs(dy) > maxAllowedY) {
+            let s = maxAllowedY / Math.abs(dy);
+            if (s < maxScaleDown) maxScaleDown = s;
+        }
+    }
+
+    if (maxScaleDown < 1.0) {
+        for (let i = 0; i < currentBlobPoints.length; i++) {
+            currentBlobPoints[i].x = centerX + (currentBlobPoints[i].x - centerX) * maxScaleDown;
+            currentBlobPoints[i].y = centerY + (currentBlobPoints[i].y - centerY) * maxScaleDown;
+        }
+    }
+
     drawBlob();
 }
 
@@ -135,31 +169,46 @@ function calculateSplit() {
     const y1 = startPoint.y;
     const x2 = endPoint.x;
     const y2 = endPoint.y;
-    const startPixel = ctx.getImageData(Math.floor(x1), Math.floor(y1), 1, 1).data;
-    const endPixel = ctx.getImageData(Math.floor(x2), Math.floor(y2), 1, 1).data;
 
-    const startOnShape = (startPixel[0] === 0 && startPixel[1] === 123 && startPixel[2] === 255 && startPixel[3] > 0);
-    const endOnShape = (endPixel[0] === 0 && endPixel[1] === 123 && endPixel[2] === 255 && endPixel[3] > 0);
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const pixels = imgData.data;
 
-    if (startOnShape || endOnShape) {
+    function isShapePixel(x, y) {
+        if (x < 0 || x >= canvas.width || y < 0 || y >= canvas.height) return false;
+        const index = (y * canvas.width + x) * 4;
+        return pixels[index] === 0 && pixels[index + 1] === 123 && pixels[index + 2] === 255 && pixels[index + 3] > 0;
+    }
+
+    if (isShapePixel(Math.floor(x1), Math.floor(y1)) || isShapePixel(Math.floor(x2), Math.floor(y2))) {
         hasCut = false;
         return;
     }
-    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const pixels = imgData.data;
+
+    let intersectsShape = false;
+    const steps = Math.max(Math.abs(x2 - x1), Math.abs(y2 - y1));
+    
+    for (let i = 0; i <= steps; i++) {
+        const t = steps === 0 ? 0 : i / steps;
+        const checkX = Math.floor(x1 + (x2 - x1) * t);
+        const checkY = Math.floor(y1 + (y2 - y1) * t);
+
+        if (isShapePixel(checkX, checkY)) {
+            intersectsShape = true;
+            break;
+        }
+    }
+
+    if (!intersectsShape) {
+        hasCut = false;
+        return;
+    }
 
     let sideAPixels = 0;
     let sideBPixels = 0;
 
     for (let y = 0; y < canvas.height; y++) {
         for (let x = 0; x < canvas.width; x++) {
-            const index = (y * canvas.width + x) * 4;
-            const r = pixels[index];
-            const g = pixels[index + 1];
-            const b = pixels[index + 2];
-            const a = pixels[index + 3];
-
-            if (r === 0 && g === 123 && b === 255 && a > 0) {
+            if (isShapePixel(x, y)) {
                 const d = (x - x1) * (y2 - y1) - (y - y1) * (x2 - x1);
                 
                 if (d > 0) {
@@ -170,11 +219,17 @@ function calculateSplit() {
             }
         }
     }
+
     if (sideAPixels === 0 || sideBPixels === 0) {
         hasCut = false; 
         return;
     }
     hasCut = true;
+
+    continueMessage.classList.remove('hidden');
+    document.getElementById('stats-container').style.margin = '15px auto 0 auto';
+    document.querySelector('canvas').style.marginBottom = '7px';
+    document.querySelector('p').style.marginBottom = '16.5px';
     
     const totalShapePixels = sideAPixels + sideBPixels;
     const pctA = (sideAPixels / totalShapePixels) * 100;
@@ -193,7 +248,7 @@ function calculateSplit() {
 
     lowerPercentage = min(Math.round(pctA), Math.round(pctB));
 
-    if (lowerPercentage < 42) {
+    if (lowerPercentage < 45) {
         scoreColor = '#ff4757';
         document.getElementById('score-text').innerText = `Score: ${score}`;
         document.getElementById('score-text').style.color = '#ff4757';
@@ -209,7 +264,7 @@ function calculateSplit() {
         document.getElementById('score-text').innerText = `Score: ${score}`;
     }
     else {
-        if (lowerPercentage <= 44) {score ++; scoreColor = '#ffffff';} else if (lowerPercentage === 45 || lowerPercentage === 46) {score += 2; scoreColor = '#fee8d1';} else if (lowerPercentage === 47 || lowerPercentage === 48) {score += 3; scoreColor = '#f3ffc6';} else if (lowerPercentage === 49) {score += 5; scoreColor = '#cfd589';}
+        /*if (lowerPercentage <= 44) {score ++; scoreColor = '#ffffff';} else */if (lowerPercentage === 45 || lowerPercentage === 46) {score += 2; scoreColor = '#fee8d1';} else if (lowerPercentage === 47 || lowerPercentage === 48) {score += 3; scoreColor = '#f3ffc6';} else if (lowerPercentage === 49) {score += 5; scoreColor = '#cfd589';}
         round++;
 
         document.getElementById('score-text').innerText = `Score: ${score}`;
