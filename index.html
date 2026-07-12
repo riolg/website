@@ -9,10 +9,18 @@
 <body>
 
     <div class="game-container">
-        <h1>Cutting Game</h1>
-        <p>Try to cut the shape perfectly in half!</p>
+        <h1>Cut the shape</h1>
+        <p>Cut the shape into two equal halves!</p>
         
-        <canvas id="gameCanvas" height="500" width="500"></canvas>
+        <canvas id="gameCanvas"></canvas>
+        <div id="stats-container">
+            <div id="ratioDisplay">
+                <div class="ratio-text"><span id="pctA-text"></span><span id="ratio-colon">:</span><span id="pctB-text"></span></div>
+            </div>
+            <div id="scoreDisplay">
+                <span id="score-text" class="score-text">Score: 0</span>
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>

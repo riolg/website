@@ -15,19 +15,50 @@ body {
 }
 
 h1 {
-    font-size: 3rem;       
+    font-size: 2.75rem;       
     margin-top: -40px;     
     margin-bottom: 10px;   
 }
 
 p {
-    font-size: 1.25rem;  
+    font-size: 1.1rem;  
     color: #aaaaaa;      
     margin-bottom: 30px;  
 }
 
 canvas {
+    background-color: #191919; 
+    border-radius: 50%;   
+    border: 8px solid #333333;             
+}
+
+#stats-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin: 20px auto 0 auto;
+    width: fit-content;
+}
+
+#ratioDisplay, #scoreDisplay {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px auto 0 auto;
+    font-size: 1.5rem;
+    font-weight: bold;
     background-color: #1e1e1e;
-    border: 2px solid #333333;
-    border-radius: 8px;
+    
+    padding: 10px 25px;
+    width: fit-content;
+    min-height: 35px;
+    min-width: 80px;
+    
+    border-radius: 10px;
+    border: 1px solid #333;
+}
+
+.ratio-text, .score-text {
+    color: #ffffff;
 }
