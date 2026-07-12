@@ -7,15 +7,17 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
     <div class="game-container">
         <h1>Cutting Game</h1>
-        <p>Cut the shape into two equal halves! Be more accurate to score more points.</p>
-        
-        <canvas id="gameCanvas"></canvas>
-
+        <p id="gameInstructions">Cut the shape into two equal halves! Be more accurate to score more points.</p>
+        <div class="game-area">
+            <div id="modeContainer">
+                <span id="modeLabel">Mode:</span>
+                <button id="modeToggleBtn">Normal</button>
+            </div>
+            <canvas id="gameCanvas"></canvas>
+        </div>
         <div id="continueMessage" class="hidden">Click to continue.</div>
-
         <div id="stats-container">
             <div id="ratioDisplay">
                 <div class="ratio-text"><span id="pctA-text"></span><span id="ratio-colon">:</span><span id="pctB-text"></span></div>
@@ -23,9 +25,9 @@
             <div id="scoreDisplay">
                 <span id="score-text" class="score-text">Score: 0</span>
             </div>
+            <button id="challengeResetBtn" class="hidden-none">Reset</button>
         </div>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>

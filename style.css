@@ -17,30 +17,53 @@ body {
 h1 {
     font-size: 2.75rem;       
     margin-top: 8px;     
-    margin-bottom: -10px;   
+    margin-bottom: 5px;   
 }
 
 p {
     font-size: 1.1rem;  
     color: #aaaaaa;      
-    margin-bottom: 17.5px;  
+    margin-top: 5px;
+    margin-bottom: 5px;  
+    min-height: 65px;
+    line-height: 2.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.target-ratio-highlight {
+    font-size: 1.75rem;
+    font-weight: bold;
+    padding: 0 6px;
+    color: #e2a8f9;
+    margin: 0 4px;
 }
 
 canvas {
     background-color: #191919; 
     border-radius: 50px;   
-    border: 8px solid #333333;             
+    border: 8px solid #333333;
+    margin-bottom: 15px;       
 }
 
 #continueMessage {
     margin-top: 15px;
+    margin-bottom: 15px;
     font-size: 1.2rem;
     color: #aaaaaa;
     font-weight: 500;
+    min-height: 1.5em;
     animation: blink 1.5s infinite ease-in-out;
 }
 
+/* Uses visibility: hidden so the continue text preserves its spot without moving layout */
 .hidden {
+    visibility: hidden !important;
+}
+
+/* Uses display: none for the reset button so it changes container centering when shown */
+.hidden-none {
     display: none !important;
 }
 
@@ -49,7 +72,7 @@ canvas {
     justify-content: center;
     align-items: center;
     gap: 15px;
-    margin: 55px auto 0 auto;
+    margin: 10px auto 0 auto;
     width: fit-content;
 }
 
@@ -57,7 +80,6 @@ canvas {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 10px auto 0 auto;
     font-size: 1.5rem;
     font-weight: bold;
     background-color: #1e1e1e;
@@ -68,14 +90,98 @@ canvas {
     min-width: 80px;
     
     border-radius: 10px;
-    border: 1px solid #333;
+    border: 2.5px solid #7777777c;
 }
 
 .ratio-text, .score-text {
     color: #ffffff;
 }
 
+#challengeResetBtn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.3rem;
+    font-weight: bold;
+    background-color: #1e1e1e;
+    color: #ffffff;
+    
+    padding: 14.5px 20px;
+    width: 100px; 
+    min-height: 35px;
+    
+    border-radius: 10px;
+    border: 2.5px solid #7777777c;
+    cursor: pointer;
+    font-family: sans-serif;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+#challengeResetBtn:hover {
+    background-color: #2a2a2a;
+    border-color: #444;
+}
+
+#challengeResetBtn:active {
+    background-color: #151515;
+}
+
 @keyframes blink {
     50% { opacity: 0.65; }
     0%, 100% { opacity: 1; }
+}
+
+.game-area {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+    width: 100%;
+}
+
+#modeContainer {
+    position: absolute;
+    left: 0;
+    transform: translateX(-233px);
+    
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+#modeLabel {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #aaaaaa;
+}
+
+#modeToggleBtn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.3rem;
+    font-weight: bold;
+    background-color: #1e1e1e;
+    color: #ffffff;
+    
+    padding: 10px 20px;
+    width: 130px; 
+    min-height: 35px;
+    
+    border-radius: 10px;
+    border: 2.5px solid #7777777c;
+    cursor: pointer;
+    font-family: sans-serif;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+#modeToggleBtn:hover {
+    background-color: #2a2a2a;
+    border-color: #444;
+}
+
+#modeToggleBtn:active {
+    background-color: #151515;
 }

@@ -12,6 +12,8 @@ let hasDied = false;
 let currentBlobPoints = [];
 let score = 0;
 let round = 0;
+let ratioToHit = 0;
+let mode = 'normal';
 
 function randomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -21,14 +23,24 @@ function min(a, b) {
     return a < b ? a : b;
 }
 
-function generateBlobShape() {
+function spawnBlob() {
+    const instructions = document.getElementById('gameInstructions');
+    if (mode === 'normal') {
+        instructions.innerHTML = "Cut the shape into two equal halves! Be more accurate to score more points.";
+        generateBlobShape(randomInt(min(78 + round * 2, 140), min(90 + round * 3, 165)), randomInt(min(65 + round * 1, 100), min(76 + Math.floor(round * 2.5), 150)), randomInt(min(5+Math.floor(round/3), 15), min(7+Math.floor(round/2), 20)));
+    }
+    else if (mode === 'challenge') {
+        ratioToHit = 50 - round * 10;
+        instructions.innerHTML = `Cut the shape into ratio: <span class="target-ratio-highlight">${100 - ratioToHit}:${ratioToHit}</span> Be more accurate to score more points.`;
+        generateBlobShape(randomInt(80, 100), randomInt(75, 85), randomInt(5, 8));
+    }
+}
+
+function generateBlobShape(baseRadius, spikeIntensity, numPoints) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     hasCut = false;
 
     continueMessage.classList.add('hidden');
-    document.getElementById('stats-container').style.margin = '51px auto 0 auto';
-    document.querySelector('canvas').style.marginBottom = '8px';
-    document.querySelector('p').style.marginBottom = '17.5px';
 
     document.getElementById('pctA-text').innerText = '- ';
     document.getElementById('ratio-colon').innerText = ':';
@@ -45,9 +57,6 @@ function generateBlobShape() {
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
     
-    const baseRadius = randomInt(min(78 + round * 2, 140), min(90 + round * 3, 165));
-    const spikeIntensity = randomInt(min(65 + round * 1, 100), min(76 + Math.floor(round * 2.5), 150));
-    const numPoints = randomInt(min(5+Math.floor(round/3), 15), min(7+Math.floor(round/2), 20));
     currentBlobPoints = [];
 
     const horizontalFactor = min(1.3 + round * 0.03, 2.1);
@@ -130,7 +139,11 @@ function getMousePos(e) {
 
 canvas.addEventListener('mousedown', (e) => {
     if (hasCut) {
-        generateBlobShape();
+        if (mode === 'challenge' && round === 5) {
+            resetGame();
+            return;
+        }
+        spawnBlob();
         return;
     }
     isDragging = true;
@@ -227,9 +240,6 @@ function calculateSplit() {
     hasCut = true;
 
     continueMessage.classList.remove('hidden');
-    document.getElementById('stats-container').style.margin = '15px auto 0 auto';
-    document.querySelector('canvas').style.marginBottom = '7px';
-    document.querySelector('p').style.marginBottom = '16.5px';
     
     const totalShapePixels = sideAPixels + sideBPixels;
     const pctA = (sideAPixels / totalShapePixels) * 100;
@@ -248,34 +258,79 @@ function calculateSplit() {
 
     lowerPercentage = min(Math.round(pctA), Math.round(pctB));
 
-    if (lowerPercentage < 45) {
-        scoreColor = '#ff4757';
-        document.getElementById('score-text').innerText = `Score: ${score}`;
-        document.getElementById('score-text').style.color = '#ff4757';
-        hasDied = true;
-        score = 0;
-        round = 0;
+    if (mode === 'normal') {
+        if (lowerPercentage < 45) {
+            scoreColor = '#ff4757';
+            document.getElementById('score-text').style.color = '#ff4757';
+            hasDied = true;
+            score = 0;
+            round = 0;
+        }
+        else if (lowerPercentage === 50) {
+            scoreColor = '#00ff51';
+            score += 10;
+            round++;
+        }
+        else {
+            if (lowerPercentage === 45 || lowerPercentage === 46) {score += 1; scoreColor = '#ffffff';} else if (lowerPercentage === 47) {score += 2; scoreColor = '#f5ffd3';} else if (lowerPercentage === 48) {score += 3; scoreColor = '#eefeb3';} else if (lowerPercentage === 49) {score += 5; scoreColor = '#cfd589';}
+            round++;
+        }
     }
-    else if (lowerPercentage === 50) {
-        scoreColor = '#00ff51';
-        score += 10;
+    else if (mode === 'challenge') {
+        difference = Math.abs(lowerPercentage - ratioToHit);
+        console.log('Difference: ' + difference);
+        if (difference === 0) {score += 100; scoreColor = '#00ff51';} else if (difference === 1) {score += 40; scoreColor = '#d6de7a';} else if (difference === 2) {score += 20; scoreColor = '#f7ffc4bc';} else if (difference === 3) {score += 10; scoreColor = '#fbffe7';} else if (difference > 3 && difference <= 5) {score += 10; scoreColor = '#ffffff';} else if (difference > 5 && difference <= 10) {score += 5; scoreColor = '#f95757';} else if (difference > 10) {score += 1; scoreColor = '#ff0000';}
         round++;
-
-        document.getElementById('score-text').innerText = `Score: ${score}`;
     }
-    else {
-        /*if (lowerPercentage <= 44) {score ++; scoreColor = '#ffffff';} else */if (lowerPercentage === 45 || lowerPercentage === 46) {score += 2; scoreColor = '#fee8d1';} else if (lowerPercentage === 47 || lowerPercentage === 48) {score += 3; scoreColor = '#f3ffc6';} else if (lowerPercentage === 49) {score += 5; scoreColor = '#cfd589';}
-        round++;
 
-        document.getElementById('score-text').innerText = `Score: ${score}`;
-    }
+    document.getElementById('score-text').innerText = `Score: ${score}`;
+
     ctx.strokeStyle = scoreColor; 
     ratioText.style.color = scoreColor;
-    
     ctx.lineWidth = 4;
     ctx.stroke();
 }
 
+function resetGame() {
+    score = 0;
+    round = 0;
+    hasCut = false;
+
+    document.getElementById('score-text').innerText = `Score: ${score}`;
+    document.getElementById('score-text').style.color = '#ffffff';
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    continueMessage.classList.add('hidden');
+    document.querySelector('.ratio-text').style.color = '#ffffff';
+    document.getElementById('pctA-text').innerText = '- ';
+    document.getElementById('ratio-colon').innerText = ':';
+    document.getElementById('pctB-text').innerText = ' -';
+
+    spawnBlob();
+}
+
 window.addEventListener('DOMContentLoaded', () => {
-    generateBlobShape();
+    spawnBlob();
+    
+    const modeBtn = document.getElementById('modeToggleBtn');
+    const resetBtn = document.getElementById('challengeResetBtn');
+
+    modeBtn.addEventListener('click', () => {
+        if (mode === 'normal') {
+            mode = 'challenge';
+            modeBtn.innerText = 'Challenge';
+            resetBtn.classList.remove('hidden-none');
+            resetGame();
+        } else {
+            mode = 'normal';
+            modeBtn.innerText = 'Normal';
+            resetBtn.classList.add('hidden-none');
+            resetGame();
+        }
+    });
+
+    resetBtn.addEventListener('click', () => {
+        resetGame();
+    });
 });
