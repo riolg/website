@@ -57,12 +57,10 @@ canvas {
     animation: blink 1.5s infinite ease-in-out;
 }
 
-/* Uses visibility: hidden so the continue text preserves its spot without moving layout */
 .hidden {
     visibility: hidden !important;
 }
 
-/* Uses display: none for the reset button so it changes container centering when shown */
 .hidden-none {
     display: none !important;
 }
